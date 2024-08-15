@@ -14,21 +14,32 @@ interface RowsProps {
 }
 
 const App: React.FC = (): JSX.Element => {
-  const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(5);
+  const [paginationModel, setPaginationModel] = useState<{
+    page: number;
+    pageSize: number;
+  }>({
+    page: 0,
+    pageSize: 5,
+  });
   const [rows, setRows] = useState<RowsProps[]>([]);
   const [rowCount, setRowCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const getUserPagination = async (page: number, limit: number) => {
+  const getUserPagination = async ({
+    page,
+    pageSize,
+  }: {
+    page: number;
+    pageSize: number;
+  }) => {
     setIsLoading(true);
 
     try {
       const response: ResponseEntity<UserProps[]> = await api
         .get("user/pagination-public", {
           params: {
-            page,
-            limit,
+            page: page + 1,
+            limit: pageSize,
           },
         })
         .then((res) => res.data);
@@ -36,7 +47,7 @@ const App: React.FC = (): JSX.Element => {
       setRows(
         response.data.map((row: UserProps, index: number) => {
           return {
-            no: (page - 1) * limit + index + 1,
+            no: page * pageSize + index + 1,
             id: row.guid,
             name: row.name,
             email: row.email,
@@ -82,32 +93,20 @@ const App: React.FC = (): JSX.Element => {
   ];
 
   useEffect(() => {
-    getUserPagination(page, limit);
-  }, [page, limit]);
+    getUserPagination(paginationModel);
+  }, [paginationModel]);
 
   return (
     <div className="flex flex-col w-full justify-center items-center p-3 gap-4">
       <h1 className="text-3xl font-bold text-blue-500">React Data Grid SSR</h1>
       <DataGrid
         rows={rows}
-        columns={column}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              page: page,
-              pageSize: limit,
-            },
-          },
-        }}
-        sortingMode="server"
-        filterMode="server"
-        paginationMode="server"
         rowCount={rowCount}
-        pageSizeOptions={[5, 10]}
-        onPaginationModelChange={({ page, pageSize }) => {
-          setPage(page);
-          setLimit(pageSize);
-        }}
+        columns={column}
+        pagination
+        paginationMode="server"
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
         loading={isLoading}
         autoHeight
       />
