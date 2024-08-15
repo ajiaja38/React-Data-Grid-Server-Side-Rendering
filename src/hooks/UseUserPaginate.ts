@@ -31,7 +31,13 @@ const UseUserPaginate = ({
   },
   Error
 > => {
-  const getUsersPaginate = async (page: number, limit: number) => {
+  const getUsersPaginate = async (
+    page: number,
+    limit: number
+  ): Promise<{
+    rows: RowsProps[];
+    rowsCount: number;
+  }> => {
     const response: ResponseEntity<UserProps[]> = await api
       .get("user/pagination-public", {
         params: {
