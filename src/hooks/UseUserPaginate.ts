@@ -76,6 +76,7 @@ const UseUserPaginate = ({
     queryKey: ["users", limit, page],
     queryFn: () => getUsersPaginate(page, limit),
     placeholderData: keepPreviousData,
+    initialData: keepPreviousData,
   });
 
   return query;
