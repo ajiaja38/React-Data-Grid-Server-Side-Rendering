@@ -108,6 +108,7 @@ const App: React.FC = (): JSX.Element => {
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
         loading={isLoading}
+        pageSizeOptions={[5, 10, 20, 50, 100]}
         autoHeight
       />
     </div>
