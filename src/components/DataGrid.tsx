@@ -1,17 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { api } from "../config";
-import { ResponseEntity } from "../types/ResponseEntity.types";
-import { UserProps } from "../types/User.types";
+import React, { useState } from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-
-interface RowsProps {
-  no: number;
-  id: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-}
+import UseUserPaginate, { RowsProps } from "../hooks/UseUserPaginate";
 
 const DataGridComponents: React.FC = (): JSX.Element => {
   const [paginationModel, setPaginationModel] = useState<{
@@ -21,50 +10,13 @@ const DataGridComponents: React.FC = (): JSX.Element => {
     page: 0,
     pageSize: 5,
   });
-  const [rows, setRows] = useState<RowsProps[]>([]);
-  const [rowCount, setRowCount] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const getUserPagination = async ({
-    page,
-    pageSize,
-  }: {
-    page: number;
-    pageSize: number;
-  }) => {
-    setIsLoading(true);
+  const { data, isLoading } = UseUserPaginate({
+    page: paginationModel.page,
+    limit: paginationModel.pageSize,
+  });
 
-    try {
-      const response: ResponseEntity<UserProps[]> = await api
-        .get("user/pagination-public", {
-          params: {
-            page: page + 1,
-            limit: pageSize,
-          },
-        })
-        .then((res) => res.data);
-
-      setRows(
-        response.data.map((row: UserProps, index: number) => {
-          return {
-            no: page * pageSize + index + 1,
-            id: row.guid,
-            name: row.name,
-            email: row.email,
-            phoneNumber: row.phoneNumber,
-            address: row.address,
-          };
-        })
-      );
-      setRowCount(response.meta?.totalData || 0);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const column: GridColDef<(typeof rows)[number]>[] = [
+  const column: GridColDef<RowsProps>[] = [
     {
       field: "no",
       headerName: "No",
@@ -92,16 +44,12 @@ const DataGridComponents: React.FC = (): JSX.Element => {
     },
   ];
 
-  useEffect(() => {
-    getUserPagination(paginationModel);
-  }, [paginationModel]);
-
   return (
     <div className="flex flex-col w-full justify-center items-center p-3 gap-4">
       <h1 className="text-3xl font-bold text-blue-500">React Data Grid SSR</h1>
       <DataGrid
-        rows={rows}
-        rowCount={rowCount}
+        rows={data?.rows || []}
+        rowCount={data?.rowsCount || 0}
         columns={column}
         pagination
         paginationMode="server"
